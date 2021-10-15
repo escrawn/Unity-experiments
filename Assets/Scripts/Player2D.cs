@@ -4,33 +4,33 @@ public class Player2D : MonoBehaviour
 {
     private Rigidbody2D _rigidbody2D;
     private MovementController _movementController;
-    public long speed = 10L;
     [SerializeField] private int maximumSlopeAngle = 60;
-    private MovementData _movementData;
+    private PlayerStates _playerStates;
     private Animator _animator;
     private static readonly int Speed = Animator.StringToHash("Speed");
     private static readonly int VelocityY = Animator.StringToHash("VelocityY");
     private static readonly int IsGrounded = Animator.StringToHash("IsGrounded");
+    public long speed = 10L;
 
     private void Start()
     {
         _rigidbody2D = gameObject.GetComponent<Rigidbody2D>();
         _movementController = new MovementController();
         _animator = gameObject.GetComponent<Animator>();
-        _movementData = MovementData.InitializeMovementData(speed, maximumSlopeAngle);
+        _playerStates = PlayerStates.InitializeMovementData(speed, maximumSlopeAngle);
     }
 
     //Use Update for input interactions and instant physics like jumps.
     private void Update()
     {
-        _movementData.SetDynamicsMovementDataAttributes();
+        _playerStates.SetDynamicsMovementDataAttributes();
         HandleJump();
     }
 
     //Use FixedUpdate for rigidBody and physics interactions.
     private void FixedUpdate()
     {
-        _movementController.Move(gameObject, _movementData);
+        _movementController.Move(gameObject, _playerStates);
     }
 
     private void LateUpdate()
@@ -40,9 +40,9 @@ public class Player2D : MonoBehaviour
 
     private void HandleAnimations()
     {
-        _animator.SetFloat(Speed, Mathf.Abs(_movementData.HorizontalAxisInput));
+        _animator.SetFloat(Speed, Mathf.Abs(_playerStates.HorizontalAxisInput));
         _animator.SetFloat(VelocityY, _rigidbody2D.velocity.y);
-        _animator.SetBool(IsGrounded, _movementData.IsGrounded);
+        _animator.SetBool(IsGrounded, _playerStates.IsGrounded);
     }
 
     private void OnCollisionStay2D(Collision2D c)
@@ -51,19 +51,28 @@ public class Player2D : MonoBehaviour
         {
             if (IsAllowedSlope(contact))
             {
-                _movementData.IsGrounded = true;
-               // _movementData.IsOnWall = false;
+                _playerStates.IsGrounded = true;
+                _playerStates.IsOnAllowedSlope = true;
+                // _movementData.IsOnWall = false;
                 break;
             }
 
-            //_movementData.IsOnWall = true;
-            _movementData.IsGrounded = false;
+            _playerStates.IsOnAllowedSlope = false;
+            Debug.Log("Velocity Y: " + _rigidbody2D.velocity.y);
+            if (_rigidbody2D.velocity.y == 0)
+            {
+                //_movementData.IsOnWall = true;
+                _playerStates.IsGrounded = false;
+                break;
+            }
+
+            _playerStates.IsGrounded = true;
         }
     }
 
     private void HandleJump()
     {
-        if (_movementData.IsJumpingButtonPressed && _movementData.IsGrounded)
+        if (_playerStates.IsJumpingButtonPressed && _playerStates.IsGrounded && _playerStates.IsOnAllowedSlope)
         {
             _rigidbody2D.AddForce(Vector2.up * 5, ForceMode2D.Impulse);
         }
@@ -71,20 +80,18 @@ public class Player2D : MonoBehaviour
 
     private bool IsAllowedSlope(ContactPoint2D contact)
     {
-        Debug.Log("Normal: " + contact.normal);
-        _movementData.CurrentSurfacePoint = contact;
-        float slopeAngle = Vector2.Angle(contact.normal, Vector2.up);
-        Debug.Log("Slope Angle: " + slopeAngle);
+        _playerStates.CurrentSurfacePoint = contact;
+        float slopeAngle = CalculateSlopeAngle(contact);
         return slopeAngle >= 0 && slopeAngle <= maximumSlopeAngle;
+    }
+    
+    private static float CalculateSlopeAngle(ContactPoint2D contact)
+    {
+        return Vector2.Angle(contact.normal, Vector2.up);
     }
 
     private void OnCollisionExit2D(Collision2D c)
     {
-        _movementData.IsGrounded = false;
-    }
-
-    private void OnCollisionEnter2D(Collision2D c)
-    {
-        _movementData.IsGrounded = true;
+        _playerStates.IsGrounded = false;
     }
 }

@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
 
-public class MovementData
+public class PlayerStates
 {
     public bool IsGrounded { get; set; }
     public bool IsJumpingButtonPressed { get; set; }
@@ -11,15 +11,17 @@ public class MovementData
 
     public ContactPoint2D CurrentSurfacePoint { get; set; }
 
+    public bool IsOnAllowedSlope { get; set; }
+
     public void SetDynamicsMovementDataAttributes()
     {
         IsJumpingButtonPressed = Input.GetKeyDown(KeyCode.Space);
         HorizontalAxisInput = Input.GetAxis("Horizontal");
     }
 
-    public static MovementData InitializeMovementData(long speed, float maximumSlopeAngle)
+    public static PlayerStates InitializeMovementData(long speed, float maximumSlopeAngle)
     {
-        return new MovementData
+        return new PlayerStates
         {
             Speed = speed,
             MaximumSlopeAngle = maximumSlopeAngle

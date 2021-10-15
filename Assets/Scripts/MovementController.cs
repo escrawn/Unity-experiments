@@ -2,47 +2,35 @@ using UnityEngine;
 
 public class MovementController
 {
-    public void Move(GameObject gameObject, MovementData movementData)
+    public void Move(GameObject gameObject, PlayerStates playerStates)
     {
-        HandleHorizontalMovement(gameObject, movementData);
-        HandleRotation(gameObject, movementData);
+        HandleHorizontalMovement(gameObject, playerStates);
+        HandleRotation(gameObject, playerStates);
     }
 
-    private void HandleHorizontalMovement(GameObject gameObject, MovementData movementData)
+    private void HandleHorizontalMovement(GameObject gameObject, PlayerStates playerStates)
     {
-        Vector3 direction = CalculateDirectionVector(movementData);
+        Vector3 direction = CalculateDirectionVector(playerStates);
         Debug.DrawRay(gameObject.transform.position, -direction, Color.red);
+        Debug.Log("Direction: " + direction);
 
         gameObject.transform.position +=
-            new Vector3(movementData.HorizontalAxisInput, 0, 0) * movementData.Speed *
-            Time.deltaTime;
+            new Vector3(playerStates.HorizontalAxisInput, -direction.y, 0)
+            * playerStates.Speed
+            * Time.deltaTime;
 
-        // Rigidbody2D rigidbody2D = gameObject.GetComponent<Rigidbody2D>();
-        // rigidbody2D.velocity = new Vector2(movementData.HorizontalAxisInput*6, -Physics.gravity.magnitude);
-
-        // gameObject.transform.position +=
-        //     new Vector3(movementData.HorizontalAxisInput, -direction.y, 0)
-        //     * movementData.Speed
-        //     * Time.deltaTime;
-
-
-        HandleMovementDirection(gameObject, movementData.HorizontalAxisInput);
+        HandleMovementDirection(gameObject, playerStates.HorizontalAxisInput);
     }
 
-    private Vector3 CalculateDirectionVector(MovementData movementData)
+    private Vector3 CalculateDirectionVector(PlayerStates playerStates)
     {
-        return movementData.IsGrounded
-               && IsAllowedSlope(movementData.CurrentSurfacePoint, movementData)
-               && !movementData.CurrentSurfacePoint.normal.y.Equals(1)
-            ? new Vector3(0, movementData.CurrentSurfacePoint.normal.y, 0)
-            : Vector3.zero;
-    }
-
-    private bool IsAllowedSlope(ContactPoint2D contact, MovementData movementData)
-    {
-        movementData.CurrentSurfacePoint = contact;
-        float slopeAngle = Vector2.Angle(contact.normal, Vector2.up);
-        return slopeAngle >= 0 && slopeAngle <= 60;
+        return new Vector3(playerStates.CurrentSurfacePoint.normal.x, playerStates.CurrentSurfacePoint.normal.y, 0);
+        //return new Vector3(0, playerStates.CurrentSurfacePoint.normal.y, 0);
+        // return playerStates.IsGrounded
+        //        && playerStates.IsOnAllowedSlope
+        //        && !playerStates.CurrentSurfacePoint.normal.y.Equals(1)
+        //     ? new Vector3(0, playerStates.CurrentSurfacePoint.normal.y, 0)
+        //     : Vector3.zero;
     }
 
 
@@ -58,14 +46,15 @@ public class MovementController
         }
     }
 
-    private void HandleRotation(GameObject gameObject, MovementData movementData)
+
+    private void HandleRotation(GameObject gameObject, PlayerStates playerStates)
     {
         Rigidbody2D rigidbody2D = gameObject.GetComponent<Rigidbody2D>();
         float walkingAngle = CalculateRotationZ(gameObject);
-        if (Mathf.Abs(walkingAngle) > movementData.MaximumSlopeAngle || !movementData.IsGrounded)
+        if (Mathf.Abs(walkingAngle) >= playerStates.MaximumSlopeAngle || !playerStates.IsGrounded)
         {
-            FreezeRotation(rigidbody2D);
             ResetRotation(gameObject);
+            FreezeRotation(rigidbody2D);
         }
         else
         {
@@ -91,8 +80,7 @@ public class MovementController
 
     private void ResetRotation(GameObject gameObject)
     {
-        Quaternion rotation = gameObject.transform.rotation;
-        rotation = Quaternion.Euler(new Vector3(rotation.x, rotation.y, 0));
-        gameObject.transform.rotation = rotation;
+        gameObject.transform.rotation = Quaternion.Euler(new Vector3(0, 0, 0));
+        ;
     }
 }

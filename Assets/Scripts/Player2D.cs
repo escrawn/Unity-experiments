@@ -10,7 +10,7 @@ public class Player2D : MonoBehaviour
     private static readonly int Speed = Animator.StringToHash("Speed");
     private static readonly int VelocityY = Animator.StringToHash("VelocityY");
     private static readonly int IsGrounded = Animator.StringToHash("IsGrounded");
-    public long speed = 10L;
+    public float speed = 0.1f;
 
     private void Start()
     {
@@ -84,7 +84,7 @@ public class Player2D : MonoBehaviour
         float slopeAngle = CalculateSlopeAngle(contact);
         return slopeAngle >= 0 && slopeAngle <= maximumSlopeAngle;
     }
-    
+
     private static float CalculateSlopeAngle(ContactPoint2D contact)
     {
         return Vector2.Angle(contact.normal, Vector2.up);

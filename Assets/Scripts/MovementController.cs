@@ -14,10 +14,7 @@ public class MovementController
         Debug.DrawRay(gameObject.transform.position, -direction, Color.red);
         Debug.Log("Direction: " + direction);
 
-        gameObject.transform.position +=
-            new Vector3(playerStates.HorizontalAxisInput, -direction.y, 0)
-            * playerStates.Speed
-            * Time.deltaTime;
+        gameObject.transform.Translate(new Vector3(playerStates.HorizontalAxisInput * playerStates.Speed, 0, 0));
 
         HandleMovementDirection(gameObject, playerStates.HorizontalAxisInput);
     }
@@ -25,25 +22,12 @@ public class MovementController
     private Vector3 CalculateDirectionVector(PlayerStates playerStates)
     {
         return new Vector3(playerStates.CurrentSurfacePoint.normal.x, playerStates.CurrentSurfacePoint.normal.y, 0);
-        //return new Vector3(0, playerStates.CurrentSurfacePoint.normal.y, 0);
-        // return playerStates.IsGrounded
-        //        && playerStates.IsOnAllowedSlope
-        //        && !playerStates.CurrentSurfacePoint.normal.y.Equals(1)
-        //     ? new Vector3(0, playerStates.CurrentSurfacePoint.normal.y, 0)
-        //     : Vector3.zero;
     }
 
 
     private void HandleMovementDirection(GameObject gameObject, float horizontalAxis)
     {
-        if (horizontalAxis > 0)
-        {
-            gameObject.transform.localScale = new Vector3(1, 1, 1);
-        }
-        else if (horizontalAxis < 0)
-        {
-            gameObject.transform.localScale = new Vector3(-1, 1, 1);
-        }
+        gameObject.transform.localScale = new Vector3(Mathf.Sign(horizontalAxis), 1, 1);
     }
 
 
@@ -81,6 +65,5 @@ public class MovementController
     private void ResetRotation(GameObject gameObject)
     {
         gameObject.transform.rotation = Quaternion.Euler(new Vector3(0, 0, 0));
-        ;
     }
 }

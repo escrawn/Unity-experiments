@@ -4,7 +4,7 @@ public class PlayerStates
 {
     public bool IsGrounded { get; set; }
     public bool IsJumpingButtonPressed { get; set; }
-    public long Speed { get; set; }
+    public float Speed { get; set; }
     public float HorizontalAxisInput { get; set; }
 
     public float MaximumSlopeAngle { get; set; }
@@ -19,7 +19,7 @@ public class PlayerStates
         HorizontalAxisInput = Input.GetAxis("Horizontal");
     }
 
-    public static PlayerStates InitializeMovementData(long speed, float maximumSlopeAngle)
+    public static PlayerStates InitializeMovementData(float speed, float maximumSlopeAngle)
     {
         return new PlayerStates
         {

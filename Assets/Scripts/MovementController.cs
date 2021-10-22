@@ -10,39 +10,38 @@ public class MovementController
 
     private void HandleHorizontalMovement(GameObject gameObject, PlayerStates playerStates)
     {
-        Vector3 direction = CalculateDirectionVector(playerStates);
-        Debug.DrawRay(gameObject.transform.position, -direction, Color.red);
-        Debug.Log("Direction: " + direction);
+        //Debug.DrawRay(gameObject.transform.position, -playerStates.CurrentSurfacePoint.normal, Color.red);
 
-        gameObject.transform.Translate(new Vector3(playerStates.HorizontalAxisInput * playerStates.Speed, 0, 0));
+        gameObject.transform.Translate(new Vector3(playerStates.HorizontalAxisInput * playerStates.Speed, 0, 0),
+            Space.Self);
 
         HandleMovementDirection(gameObject, playerStates.HorizontalAxisInput);
     }
 
-    private Vector3 CalculateDirectionVector(PlayerStates playerStates)
-    {
-        return new Vector3(playerStates.CurrentSurfacePoint.normal.x, playerStates.CurrentSurfacePoint.normal.y, 0);
-    }
-
-
     private void HandleMovementDirection(GameObject gameObject, float horizontalAxis)
     {
-        gameObject.transform.localScale = new Vector3(Mathf.Sign(horizontalAxis), 1, 1);
+        if (horizontalAxis != 0)
+        {
+            gameObject.transform.localScale = new Vector3(Mathf.Sign(horizontalAxis), 1, 1);
+        }
     }
 
 
     private void HandleRotation(GameObject gameObject, PlayerStates playerStates)
     {
         Rigidbody2D rigidbody2D = gameObject.GetComponent<Rigidbody2D>();
-        float walkingAngle = CalculateRotationZ(gameObject);
-        if (Mathf.Abs(walkingAngle) >= playerStates.MaximumSlopeAngle || !playerStates.IsGrounded)
+        float walkingAngle = CalculateWalkingAngle(playerStates);
+
+        if (!playerStates.IsGrounded)
         {
             ResetRotation(gameObject);
-            FreezeRotation(rigidbody2D);
+            //FreezeRotation(rigidbody2D);
         }
-        else
+
+        if (walkingAngle < playerStates.MaximumSlopeAngle && playerStates.IsGrounded)
         {
-            UnlockRotation(rigidbody2D);
+            AdjustRotationToFloor(gameObject, playerStates);
+            FreezeRotation(rigidbody2D);
         }
     }
 
@@ -64,6 +63,30 @@ public class MovementController
 
     private void ResetRotation(GameObject gameObject)
     {
-        gameObject.transform.rotation = Quaternion.Euler(new Vector3(0, 0, 0));
+        gameObject.transform.rotation =
+            Quaternion.LookRotation(Vector3.forward, new Vector3(0, 0, 0));
+    }
+
+    private float CalculateWalkingAngle(PlayerStates playerStates)
+    {
+        Vector2 normal = new Vector2(0, 0);
+        if (playerStates.CurrentSurfacePoint != null)
+        {
+            normal = ((ContactPoint2D) playerStates.CurrentSurfacePoint).normal;
+        }
+
+        return Vector2.Angle(normal, Vector2.up);
+    }
+
+    private void AdjustRotationToFloor(GameObject gameObject, PlayerStates playerStates)
+    {
+        Vector2 normal = new Vector2(0, 0);
+        if (playerStates.CurrentSurfacePoint != null)
+        {
+            normal = ((ContactPoint2D) playerStates.CurrentSurfacePoint).normal;
+        }
+
+        gameObject.transform.rotation =
+            Quaternion.LookRotation(Vector3.forward, normal);
     }
 }

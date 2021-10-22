@@ -9,11 +9,11 @@ public class PlayerStates
 
     public float MaximumSlopeAngle { get; set; }
 
-    public ContactPoint2D CurrentSurfacePoint { get; set; }
+    public ContactPoint2D? CurrentSurfacePoint { get; set; }
 
     public bool IsOnAllowedSlope { get; set; }
 
-    public void SetDynamicsMovementDataAttributes()
+    public void SetInitialStates()
     {
         IsJumpingButtonPressed = Input.GetKeyDown(KeyCode.Space);
         HorizontalAxisInput = Input.GetAxis("Horizontal");
